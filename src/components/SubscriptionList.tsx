@@ -18,11 +18,7 @@ export default function SubscriptionList({
   onEdit,
   onDelete,
 }: SubscriptionListProps) {
-  const sorted = [...subscriptions].sort(
-    (a, b) => b.price - a.price
-  )
-
-  if (sorted.length === 0) {
+  if (subscriptions.length === 0) {
     return (
       <p className="text-center text-muted-foreground">
         No subscriptions yet. Add your first one.
@@ -32,7 +28,7 @@ export default function SubscriptionList({
 
   return (
     <div className="space-y-3">
-      {sorted.map((sub) => (
+      {subscriptions.map((sub) => (
         <Card key={sub.id}>
           <CardContent className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-2">
