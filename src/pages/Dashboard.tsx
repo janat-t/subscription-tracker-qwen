@@ -9,6 +9,7 @@ import CategoryChart from '@/components/CategoryChart'
 import CurrencyPicker from '@/components/CurrencyPicker'
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog'
 import { Plus } from 'lucide-react'
+import ThemeToggle from '@/components/ThemeToggle'
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -26,6 +27,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold tracking-tight">Subscription Tracker</h1>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <CurrencyPicker currency={currency} onChangeCurrency={setCurrency} />
             <Button size="sm" onClick={() => navigate('/add')}>
               <Plus className="size-4 mr-1" />
