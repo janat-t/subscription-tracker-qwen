@@ -69,22 +69,24 @@ See [`CONTEXT.md`](./CONTEXT.md) for precise definitions of terms used throughou
 
 ## How This Was Built
 
-This project was planned and implemented entirely using AI tooling as a demonstration of the [9ARM AI Passport](https://9arm.ai) workflow:
+This project was planned and implemented entirely using AI tooling as a demonstration of the [9ARM AI Passport](https://chat.9arm.co/) workflow:
 
 **Planning** — Requirements were gathered through a structured interview using the `grill-with-docs` skill in [Claude Code](https://claude.ai/code), powered by **Anthropic Claude Sonnet 4.6**. Every product decision (tech stack, data model, UX behavior, routing) was resolved before a single line of code was written and captured in `CONTEXT.md`.
 
-**Implementation** — Mechanical scaffolding and boilerplate (component files, type definitions, utility functions) were delegated to the **`qwen-agent` skill**, which routes tasks to the [9ARM](https://9arm.ai) gateway running **Qwen3.6-35B-A3B** (`claude-9arm`). This kept expensive Sonnet reasoning reserved for architecture decisions, debugging TypeScript errors, and verification.
+**Implementation** — Mechanical scaffolding and boilerplate (component files, type definitions, utility functions) were delegated to the **[`qwen-agent` skill](https://github.com/thananon/9arm-skills/tree/main)**, which routes tasks to the [9ARM](https://chat.9arm.co/) gateway running **Qwen3.6-35B-A3B** (`claude-9arm`). This kept expensive Sonnet reasoning reserved for architecture decisions, debugging TypeScript errors, and verification.
 
 **Verification** — The final app was verified end-to-end using Playwright headless Chromium, driven by the `verify` skill, before pushing.
+
+Watch the full build walkthrough: [youtube.com/watch?v=ZUkVeXmD-Ek](https://youtu.be/ZUkVeXmD-Ek?si=sRgz7ojAm48wne7p)
 
 ### AI tools used
 
 | Tool | Role |
 |---|---|
 | Claude Sonnet 4.6 (Claude Code) | Planning, architecture, debugging, verification |
-| 9ARM `qwen-agent` skill | Scaffolding boilerplate component files |
-| Qwen3.6-35B-A3B via 9ARM gateway | Executing the qwen-agent tasks |
+| [9ARM `qwen-agent` skill](https://github.com/thananon/9arm-skills/tree/main) | Scaffolding boilerplate component files |
+| Qwen3.6-35B-A3B via [9ARM gateway](https://chat.9arm.co/) | Executing the qwen-agent tasks |
 | `grill-with-docs` skill | Structured requirements interview |
 | `verify` skill + Playwright | End-to-end UI verification |
 
-> 9ARM AI Passport lets you mix models mid-session — use a capable frontier model for reasoning and a fast/cheap model for mechanical work — without leaving your terminal.
+> [9ARM AI Passport](https://chat.9arm.co/) lets you mix models mid-session — use a capable frontier model for reasoning and a fast/cheap model for mechanical work — without leaving your terminal.
