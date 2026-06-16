@@ -2,7 +2,7 @@
 
 A minimal, modern web app to track your recurring subscriptions — no account needed, no backend, no data leaves your browser.
 
-![Dashboard showing subscriptions with category chart](https://placeholder.com/dashboard)
+**Live:** https://janat-t.github.io/subscription-tracker-qwen/
 
 ## Features
 
