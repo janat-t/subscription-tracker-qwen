@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  base: '/subscription-tracker-qwen/',
+  base: '/',
   plugins: [tailwindcss(), react()],
   resolve: {
     alias: {
