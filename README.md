@@ -6,14 +6,14 @@ A minimal, modern web app to track your recurring subscriptions. Works offline w
 
 ## Features
 
-- **Dashboard** — total monthly spend (annual subs normalized to monthly), spend-by-category donut chart, full subscription list
-- **Sort & filter** — sort by price, name, or next payment date; filter by category; search by name
-- **Add / Edit / Delete** subscriptions with confirmation dialog
-- **Payment methods** — credit card (custom label), Apple Pay, Google Pay
-- **Billing cycles** — monthly or annually; next payment date auto-calculated from billing day
+- **Dashboard** — total monthly spend (annual subs normalized to monthly), spend-by-category and spend-by-payment-method donut charts (collapsible), full subscription list
+- **Sort & filter** — sort by price, name, or next payment date; filter by category and payment method; search by name; filters live in a collapsible panel with active-count badge; charts reflect active filters
+- **Add / Edit / Delete** subscriptions with confirmation dialog; mutations are optimistic with rollback — errors surface on the form or list rather than failing silently
+- **Payment methods** — free-text input with suggestions (Credit Card, Apple Pay, Google Pay, PayPal, PayPay, Venmo); blank input stored as "Credit Card"
+- **Billing cycles** — monthly or annually; annually shows a billing month picker; next payment date auto-calculated from billing day
 - **10 categories** — Entertainment, Productivity, Cloud/Storage, News & Media, Health & Fitness, Finance, Shopping, Gaming, Utilities, Other
 - **Settings** — currency picker (USD, EUR, GBP, JPY, and more) + light/dark/system theme, grouped in a single gear icon
-- **Auth + cloud sync** — optional Supabase sign-in (email/password); localStorage is the write-through cache, DB is authoritative on load; "Save to cloud" button + auto-sync on tab blur; forgot password + password reset flow; change password in Settings
+- **Auth + cloud sync** — optional Supabase sign-in (email/password + Google OAuth); localStorage is the write-through cache, DB is authoritative on load; "Save to cloud" button; pull from DB on tab focus; forgot password + password reset flow; change password in Settings
 - **Guest mode** — app opens directly to dashboard; sign in only when you want cloud sync; data stays in localStorage until then
 
 ## Tech Stack

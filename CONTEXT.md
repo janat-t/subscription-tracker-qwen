@@ -13,13 +13,13 @@ The day of the month (1–31) on which the subscription renews. Used to calculat
 An annual subscription's price divided by 12. Used to normalize spend across billing cycles for dashboard totals.
 
 ## Payment Method
-How the subscription is charged. Either a free-text credit card label (e.g., "Chase Sapphire"), `Apple Pay`, or `Google Pay`.
+How the subscription is charged. Free-text string (e.g., "Chase Sapphire", "Apple Pay"). Blank input defaults to `"Credit Card"`. Suggested values shown via datalist but not restricted.
 
 ## Category
 A predefined classification for the subscription. One of: Entertainment, Productivity, Cloud / Storage, News & Media, Health & Fitness, Finance, Shopping, Gaming, Utilities, Other.
 
 ## Dashboard
-The main view (`/`). Shows total monthly spend, spend by category, and a list of all subscriptions sorted by price high to low.
+The main view (`/`). Shows total monthly spend, spend-by-category and spend-by-payment-method donut charts (collapsible), and a filterable/sortable subscription list. Charts reflect active filters; total spend does not.
 
 ## Currency
 A single user-configured currency symbol/code applied to all prices. No conversion math is performed.
