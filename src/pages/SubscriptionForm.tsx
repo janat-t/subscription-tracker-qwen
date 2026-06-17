@@ -42,6 +42,8 @@ export default function SubscriptionForm() {
   const { add, update, subscriptions } = useSubscriptions()
 
   const [state, setState] = useState(emptyState)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -69,8 +71,10 @@ export default function SubscriptionForm() {
 
   const set = (patch: Partial<typeof state>) => setState(prev => ({ ...prev, ...patch }))
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSubmitError(null)
+    setSubmitting(true)
 
     const paymentMethod =
       state.paymentType === 'Credit Card' ? state.cardLabel : state.paymentType
@@ -85,13 +89,17 @@ export default function SubscriptionForm() {
       category: state.category,
     }
 
-    if (id) {
-      update(id, data)
-    } else {
-      add(data)
+    try {
+      if (id) {
+        await update(id, data)
+      } else {
+        await add(data)
+      }
+      navigate('/')
+    } catch {
+      setSubmitError('Could not save. Please try again.')
+      setSubmitting(false)
     }
-
-    navigate('/')
   }
 
   return (
@@ -230,11 +238,16 @@ export default function SubscriptionForm() {
               </Select>
             </div>
 
+            {submitError && (
+              <p className="text-sm text-destructive">{submitError}</p>
+            )}
             <div className="flex gap-2 pt-2">
               <Button type="button" variant="outline" onClick={() => navigate('/')}>
                 Cancel
               </Button>
-              <Button type="submit">Save</Button>
+              <Button type="submit" disabled={submitting}>
+                {submitting ? 'Saving…' : 'Save'}
+              </Button>
             </div>
           </form>
         </CardContent>

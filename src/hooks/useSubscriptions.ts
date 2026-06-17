@@ -85,11 +85,6 @@ export function useSubscriptions() {
   }, [])
 
   useEffect(() => {
-    window.addEventListener("blur", sync)
-    return () => window.removeEventListener("blur", sync)
-  }, [sync])
-
-  useEffect(() => {
     const fetchFromDb = async () => {
       try {
         const { data: { session: existing } } = await supabase.auth.getSession()
@@ -107,7 +102,8 @@ export function useSubscriptions() {
     }
     const handleFocus = () => {
       if (focusTimerRef.current) clearTimeout(focusTimerRef.current)
-      focusTimerRef.current = setTimeout(fetchFromDb, 500)
+      focusTimerRef.current = null
+      fetchFromDb()
     }
     document.addEventListener("visibilitychange", handleVisibility)
     window.addEventListener("focus", handleFocus)
@@ -118,7 +114,7 @@ export function useSubscriptions() {
     }
   }, [])
 
-  const add = useCallback((sub: Omit<Subscription, "id" | "createdAt">) => {
+  const add = useCallback(async (sub: Omit<Subscription, "id" | "createdAt">) => {
     const newSub: Subscription = {
       ...sub,
       id: crypto.randomUUID(),
@@ -129,31 +125,66 @@ export function useSubscriptions() {
       saveLocalSubscriptions(next)
       return next
     })
-    addSubscription(newSub).then(() => setError(null)).catch((e: unknown) => {
-      setError(e instanceof Error ? e.message : String(e))
-    })
+    try {
+      await addSubscription(newSub)
+      setError(null)
+    } catch (e: unknown) {
+      setSubscriptions(prev => {
+        const next = prev.filter(s => s.id !== newSub.id)
+        saveLocalSubscriptions(next)
+        return next
+      })
+      throw e
+    }
   }, [])
 
-  const update = useCallback((id: string, sub: Omit<Subscription, "id" | "createdAt">) => {
-    setSubscriptions(prev => {
-      const next = prev.map(s => s.id === id ? { ...s, ...sub } : s)
+  const update = useCallback(async (id: string, sub: Omit<Subscription, "id" | "createdAt">) => {
+    let prev: Subscription | undefined
+    setSubscriptions(prevList => {
+      prev = prevList.find(s => s.id === id)
+      const next = prevList.map(s => s.id === id ? { ...s, ...sub } : s)
       saveLocalSubscriptions(next)
       return next
     })
-    updateSubscription(id, sub).then(() => setError(null)).catch((e: unknown) => {
-      setError(e instanceof Error ? e.message : String(e))
-    })
+    try {
+      await updateSubscription(id, sub)
+      setError(null)
+    } catch (e: unknown) {
+      if (prev) {
+        setSubscriptions(prevList => {
+          const next = prevList.map(s => s.id === id ? prev! : s)
+          saveLocalSubscriptions(next)
+          return next
+        })
+      }
+      throw e
+    }
   }, [])
 
-  const remove = useCallback((id: string) => {
+  const remove = useCallback(async (id: string) => {
+    let removed: Subscription | undefined
+    let removedIndex = -1
     setSubscriptions(prev => {
+      removedIndex = prev.findIndex(s => s.id === id)
+      removed = prev[removedIndex]
       const next = prev.filter(s => s.id !== id)
       saveLocalSubscriptions(next)
       return next
     })
-    deleteSubscription(id).then(() => setError(null)).catch((e: unknown) => {
+    try {
+      await deleteSubscription(id)
+      setError(null)
+    } catch (e: unknown) {
+      if (removed !== undefined && removedIndex !== -1) {
+        setSubscriptions(prev => {
+          const next = [...prev]
+          next.splice(removedIndex, 0, removed!)
+          saveLocalSubscriptions(next)
+          return next
+        })
+      }
       setError(e instanceof Error ? e.message : String(e))
-    })
+    }
   }, [])
 
   const setCurrency = useCallback((c: string) => {
