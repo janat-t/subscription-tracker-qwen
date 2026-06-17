@@ -3,6 +3,8 @@ import { ThemeProvider } from "@/components/ThemeProvider"
 import AuthGate from "@/components/AuthGate"
 import Dashboard from "@/pages/Dashboard"
 import SubscriptionForm from "@/pages/SubscriptionForm"
+import Terms from "@/pages/Terms"
+import Privacy from "@/pages/Privacy"
 
 export default function App() {
   return (
@@ -13,6 +15,8 @@ export default function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/add" element={<SubscriptionForm />} />
             <Route path="/edit/:id" element={<SubscriptionForm />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
           </Routes>
         </BrowserRouter>
       </AuthGate>
