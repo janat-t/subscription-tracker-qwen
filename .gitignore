@@ -3,6 +3,14 @@ dist
 .env
 .env.local
 
+# teaching workspace
+lessons/
+learning-records/
+reference/
+MISSION.md
+NOTES.md
+RESOURCES.md
+
 # wrangler files
 .wrangler
 .dev.vars*

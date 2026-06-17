@@ -6,7 +6,9 @@ A minimal, modern web app to track your recurring subscriptions — no account n
 
 ## Features
 
-- **Dashboard** — total monthly spend (annual subs normalized to monthly), spend-by-category donut chart, full subscription list sorted by price
+- **Dashboard** — total monthly spend (annual subs normalized to monthly), spend-by-category donut chart, full subscription list
+- **Sort & filter** — sort by price, name, or next payment date; filter by category; search by name
+- **Dark mode** — system / light / dark toggle, persisted to localStorage, no flash on load
 - **Add / Edit / Delete** subscriptions with confirmation dialog
 - **Payment methods** — credit card (custom label), Apple Pay, Google Pay
 - **Billing cycles** — monthly or annually; next payment date auto-calculated from billing day
@@ -18,7 +20,7 @@ A minimal, modern web app to track your recurring subscriptions — no account n
 
 | Layer | Choice |
 |---|---|
-| Framework | React 18 + Vite 5 |
+| Framework | React 18 + Vite 8 |
 | Language | TypeScript (strict) |
 | Styling | Tailwind CSS v4 |
 | Components | shadcn/ui (base-ui primitives) |
@@ -60,6 +62,17 @@ src/
     ├── CurrencyPicker.tsx
     └── DeleteConfirmDialog.tsx
 ```
+
+## Ideas for future improvements
+
+- **Upcoming payments** — a "due this week / this month" section so you never get surprised by a charge
+- **Pause / inactive toggle** — hide a subscription from totals without deleting it
+- **Export / import JSON** — backup and restore; useful for migrating to a new device
+- **Service emoji / icon** — let the user pick an emoji per subscription to make the list scannable at a glance
+- **Auth + cloud sync** — add Supabase auth so data syncs across devices (localStorage stays as offline cache)
+- **Trial end date** — flag a subscription as a trial with a countdown to when it converts to paid
+- **Budget alert** — warn when total monthly spend exceeds a user-set threshold
+- **PWA** — installable to home screen; the app already works fully offline
 
 ## Domain Glossary
 
