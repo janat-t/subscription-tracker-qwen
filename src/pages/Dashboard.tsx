@@ -67,9 +67,9 @@ export default function Dashboard() {
       <div className="max-w-3xl mx-auto px-4 py-8 space-y-6 flex-1 w-full">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src="/icon.svg" alt="" className="size-7 rounded-lg" />
-            <h1 className="text-2xl font-semibold tracking-tight">Subscription Tracker</h1>
+          <div className="flex min-w-0 items-center gap-2">
+            <img src="/icon.svg" alt="" className="size-7 rounded-lg shrink-0" />
+            <h1 className="text-lg sm:text-2xl font-semibold tracking-tight whitespace-nowrap">Subscription Tracker</h1>
           </div>
           <div className="flex items-center gap-2">
             {isAuthenticated ? (
@@ -169,7 +169,7 @@ export default function Dashboard() {
         )}
 
         {/* Search + Sort + Filter */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
             <Input
@@ -179,8 +179,9 @@ export default function Dashboard() {
               className="pl-8"
             />
           </div>
+          <div className="flex items-center gap-2">
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="flex-1 sm:w-[160px]">
               <SelectValue>
                 {({'price-desc': 'Price: High → Low', 'price-asc': 'Price: Low → High', 'name': 'Name', 'next-payment': 'Next payment'} as Record<string, string>)[sortBy]}
               </SelectValue>
@@ -206,6 +207,7 @@ export default function Dashboard() {
               </span>
             )}
           </Button>
+          </div>
         </div>
 
         {filtersOpen && (
