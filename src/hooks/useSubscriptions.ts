@@ -26,6 +26,7 @@ export function useSubscriptions() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const syncingRef = useRef(false)
   const hasLoadedRef = useRef(false)
+  const focusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -91,6 +92,8 @@ export function useSubscriptions() {
   useEffect(() => {
     const fetchFromDb = async () => {
       try {
+        const { data: { session: existing } } = await supabase.auth.getSession()
+        if (!existing) return
         const { data: { session } } = await supabase.auth.refreshSession()
         if (!session) return
         const subs = await getSubscriptions()
@@ -102,12 +105,16 @@ export function useSubscriptions() {
     const handleVisibility = () => {
       if (document.visibilityState === "visible") fetchFromDb()
     }
-    const handleFocus = () => setTimeout(fetchFromDb, 500)
+    const handleFocus = () => {
+      if (focusTimerRef.current) clearTimeout(focusTimerRef.current)
+      focusTimerRef.current = setTimeout(fetchFromDb, 500)
+    }
     document.addEventListener("visibilitychange", handleVisibility)
     window.addEventListener("focus", handleFocus)
     return () => {
       document.removeEventListener("visibilitychange", handleVisibility)
       window.removeEventListener("focus", handleFocus)
+      if (focusTimerRef.current) clearTimeout(focusTimerRef.current)
     }
   }, [])
 
