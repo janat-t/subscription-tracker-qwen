@@ -91,6 +91,8 @@ export function useSubscriptions() {
   useEffect(() => {
     const fetchFromDb = async () => {
       try {
+        const { data: { session } } = await supabase.auth.refreshSession()
+        if (!session) return
         const subs = await getSubscriptions()
         if (!subs || subs.length === 0) return
         setSubscriptions(subs)
