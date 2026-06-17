@@ -6,6 +6,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
+// Read hash error synchronously at module load — before Supabase or StrictMode can clear it
+const _hashParams = new URLSearchParams(window.location.hash.slice(1))
+const _initialLinkError = _hashParams.get("error_code")
+  ? (_hashParams.get("error_description") ?? "Link is invalid or has expired")
+  : null
+
 function RecoverPasswordScreen({ onDone }: { onDone: () => void }) {
   const [password, setPassword] = useState("")
   const [confirm, setConfirm] = useState("")
@@ -79,15 +85,10 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   const [submitting, setSubmitting] = useState(false)
   const [signedUp, setSignedUp] = useState(false)
   const [forgotSent, setForgotSent] = useState(false)
-  const [linkError, setLinkError] = useState<string | null>(null)
+  const [linkError, setLinkError] = useState<string | null>(_initialLinkError)
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.hash.slice(1))
-    const code = params.get("error_code")
-    if (code) {
-      setLinkError(params.get("error_description") ?? "Link is invalid or has expired")
-      history.replaceState(null, "", window.location.pathname)
-    }
+    if (_initialLinkError) history.replaceState(null, "", window.location.pathname)
 
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
