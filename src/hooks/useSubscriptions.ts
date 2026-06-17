@@ -89,7 +89,8 @@ export function useSubscriptions() {
   }, [sync])
 
   useEffect(() => {
-    const handleFocus = async () => {
+    const handleVisibility = async () => {
+      if (document.visibilityState !== "visible") return
       try {
         const subs = await getSubscriptions()
         if (!subs || subs.length === 0) return
@@ -97,8 +98,8 @@ export function useSubscriptions() {
         saveLocalSubscriptions(subs)
       } catch {}
     }
-    window.addEventListener("focus", handleFocus)
-    return () => window.removeEventListener("focus", handleFocus)
+    document.addEventListener("visibilitychange", handleVisibility)
+    return () => document.removeEventListener("visibilitychange", handleVisibility)
   }, [])
 
   const add = useCallback((sub: Omit<Subscription, "id" | "createdAt">) => {
