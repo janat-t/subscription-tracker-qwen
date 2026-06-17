@@ -102,11 +102,12 @@ export function useSubscriptions() {
     const handleVisibility = () => {
       if (document.visibilityState === "visible") fetchFromDb()
     }
+    const handleFocus = () => setTimeout(fetchFromDb, 500)
     document.addEventListener("visibilitychange", handleVisibility)
-    window.addEventListener("focus", fetchFromDb)
+    window.addEventListener("focus", handleFocus)
     return () => {
       document.removeEventListener("visibilitychange", handleVisibility)
-      window.removeEventListener("focus", fetchFromDb)
+      window.removeEventListener("focus", handleFocus)
     }
   }, [])
 
