@@ -27,7 +27,7 @@ A minimal, modern web app to track your recurring subscriptions. Works offline w
 | Charts | Recharts |
 | Routing | React Router v7 |
 | Storage | localStorage (primary) + Supabase Postgres (cloud) |
-| Auth | Supabase email/password |
+| Auth | Supabase email/password + Google OAuth |
 | Deployment | Cloudflare Workers |
 
 ## Getting Started
