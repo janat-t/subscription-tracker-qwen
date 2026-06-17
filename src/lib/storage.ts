@@ -18,10 +18,6 @@ type DbRow = {
   created_at: string
 }
 
-export function mapDbRow(row: Record<string, unknown>): Subscription {
-  return dbToSub(row as DbRow)
-}
-
 function dbToSub(row: DbRow): Subscription {
   return {
     id: row.id,
