@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
-import { syncToDatabase } from "@/lib/storage"
+import { getSubscriptions, addSubscription } from "@/lib/storage"
 import type { Subscription } from "@/types"
 import type { Session } from "@supabase/supabase-js"
 import { Button } from "@/components/ui/button"
@@ -51,13 +51,16 @@ function RecoverPasswordScreen({ onDone }: { onDone: () => void }) {
 const AuthContext = createContext<{ showAuth: () => void }>({ showAuth: () => {} })
 export function useAuth() { return useContext(AuthContext) }
 
+let migrating = false
 async function migrateLocalStorage() {
+  if (migrating) return
+  migrating = true
   const raw = localStorage.getItem("subscriptions")
-  if (!raw) return
+  if (!raw) { migrating = false; return }
   try {
     const subs = JSON.parse(raw)
     if (!Array.isArray(subs)) return
-    const allSubs: Subscription[] = subs.map((s: Subscription) => ({
+    const localSubs: Subscription[] = subs.map((s: Subscription) => ({
       id: s.id ?? crypto.randomUUID(),
       name: s.name,
       price: s.price,
@@ -68,9 +71,18 @@ async function migrateLocalStorage() {
       category: s.category,
       createdAt: s.createdAt ?? new Date().toISOString(),
     }))
-    await syncToDatabase(allSubs)
+    const dbSubs = await getSubscriptions()
+    if (!dbSubs) return
+    const dbIds = new Set(dbSubs.map((s: Subscription) => s.id))
+    for (const sub of localSubs) {
+      if (!dbIds.has(sub.id)) {
+        await addSubscription(sub)
+      }
+    }
     localStorage.removeItem("subscriptions")
   } catch {
+  } finally {
+    migrating = false
   }
 }
 
