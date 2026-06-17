@@ -77,7 +77,7 @@ export default function Dashboard() {
             ) : (
               <div className="flex items-center gap-1">
                 <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
-                  Sign in to sync
+                  Sign in to save
                 </Button>
                 <SettingsDialog currency={currency} onChangeCurrency={setCurrency} />
               </div>
