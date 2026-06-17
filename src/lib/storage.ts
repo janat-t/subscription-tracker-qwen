@@ -122,16 +122,24 @@ export async function deleteSubscription(id: string): Promise<void> {
 export async function syncToDatabase(subs: Subscription[]): Promise<void> {
   const userId = await getUserId()
   if (!userId) return
-  const { error: delErr } = await supabase
-    .from("subscriptions")
-    .delete()
-    .eq("user_id", userId)
-  if (delErr) throw new Error(delErr.message)
   if (subs.length > 0) {
-    const { error: insErr } = await supabase
+    const { error: upsertErr } = await supabase
       .from("subscriptions")
-      .insert(subs.map(s => subToDbFull(s, userId)))
-    if (insErr) throw new Error(insErr.message)
+      .upsert(subs.map(s => subToDbFull(s, userId)), { onConflict: 'id' })
+    if (upsertErr) throw new Error(upsertErr.message)
+    const ids = subs.map(s => s.id)
+    const { error: delErr } = await supabase
+      .from("subscriptions")
+      .delete()
+      .eq("user_id", userId)
+      .not("id", "in", `(${ids.join(",")})`)
+    if (delErr) throw new Error(delErr.message)
+  } else {
+    const { error: delErr } = await supabase
+      .from("subscriptions")
+      .delete()
+      .eq("user_id", userId)
+    if (delErr) throw new Error(delErr.message)
   }
 }
 
