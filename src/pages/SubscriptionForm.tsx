@@ -14,6 +14,8 @@ const MONTHS = [
   'July','August','September','October','November','December',
 ]
 
+const STATIC_PAYMENT_METHODS = ['Credit Card', 'Apple Pay', 'Google Pay', 'PayPay']
+
 function emptyState(): {
   name: string
   price: string
@@ -21,6 +23,7 @@ function emptyState(): {
   billingDay: string
   billingMonth: number
   paymentMethod: string
+  addingNewMethod: boolean
   category: Category
 } {
   return {
@@ -30,6 +33,7 @@ function emptyState(): {
     billingDay: '1',
     billingMonth: new Date().getMonth() + 1,
     paymentMethod: '',
+    addingNewMethod: false,
     category: 'Entertainment',
   }
 }
@@ -56,7 +60,8 @@ export default function SubscriptionForm() {
       billingDay: String(sub.billingDay),
       billingMonth: sub.billingMonth ?? (new Date(sub.createdAt).getMonth() + 1),
       category: sub.category,
-      paymentMethod: sub.paymentMethod === 'Credit Card' ? '' : sub.paymentMethod,
+      paymentMethod: sub.paymentMethod,
+      addingNewMethod: false,
     })
   }, [id, subscriptions])
 
@@ -67,13 +72,19 @@ export default function SubscriptionForm() {
     setSubmitError(null)
     setSubmitting(true)
 
+    if (!state.paymentMethod.trim()) {
+      setSubmitError('Payment method is required.')
+      setSubmitting(false)
+      return
+    }
+
     const data = {
       name: state.name,
       price: parseFloat(state.price),
       billingCycle: state.billingCycle,
       billingDay: parseInt(state.billingDay, 10),
       billingMonth: state.billingCycle === 'annually' ? state.billingMonth : undefined,
-      paymentMethod: state.paymentMethod.trim() || 'Credit Card',
+      paymentMethod: state.paymentMethod.trim(),
       category: state.category,
     }
 
@@ -89,6 +100,9 @@ export default function SubscriptionForm() {
       setSubmitting(false)
     }
   }
+
+  const existingMethods = [...new Set(subscriptions.map(s => s.paymentMethod).filter(Boolean))]
+  const paymentSuggestions = [...new Set([...existingMethods, ...STATIC_PAYMENT_METHODS])]
 
   return (
     <div className="min-h-screen bg-background flex items-start justify-center px-4 py-8">
@@ -173,21 +187,35 @@ export default function SubscriptionForm() {
 
             <div className="space-y-2">
               <Label htmlFor="paymentMethod">Payment Method</Label>
-              <Input
-                id="paymentMethod"
-                list="payment-suggestions"
-                placeholder="e.g. Chase Sapphire, Apple Pay"
-                value={state.paymentMethod}
-                onChange={e => set({ paymentMethod: e.target.value })}
-              />
-              <datalist id="payment-suggestions">
-                <option value="Credit Card" />
-                <option value="Apple Pay" />
-                <option value="Google Pay" />
-                <option value="PayPal" />
-                <option value="PayPay" />
-                <option value="Venmo" />
-              </datalist>
+              <Select
+                value={state.addingNewMethod ? '__add_new__' : state.paymentMethod}
+                onValueChange={v => {
+                  if (!v) return
+                  if (v === '__add_new__') set({ addingNewMethod: true, paymentMethod: '' })
+                  else set({ addingNewMethod: false, paymentMethod: v })
+                }}
+              >
+                <SelectTrigger id="paymentMethod">
+                  <SelectValue placeholder="Select payment method">
+                    {state.addingNewMethod ? 'Add New...' : state.paymentMethod || undefined}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {paymentSuggestions.map(m => (
+                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                  ))}
+                  <SelectItem value="__add_new__">Add New...</SelectItem>
+                </SelectContent>
+              </Select>
+              {state.addingNewMethod && (
+                <Input
+                  placeholder="Enter payment method"
+                  value={state.paymentMethod}
+                  onChange={e => set({ paymentMethod: e.target.value })}
+                  required
+                  autoFocus
+                />
+              )}
             </div>
 
             <div className="space-y-2">
