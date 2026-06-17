@@ -69,7 +69,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between">
           <div className="flex min-w-0 items-center gap-2">
             <img src="/icon.svg" alt="" className="size-7 rounded-lg shrink-0" />
-            <h1 className="text-lg sm:text-2xl font-semibold tracking-tight whitespace-nowrap">Subscription Tracker</h1>
+            <h1 className="text-lg sm:text-2xl font-semibold tracking-tight truncate"><span className="hidden sm:inline">Subscription </span>Tracker</h1>
           </div>
           <div className="flex items-center gap-2">
             {isAuthenticated ? (
