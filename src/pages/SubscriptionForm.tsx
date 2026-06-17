@@ -47,7 +47,7 @@ export default function SubscriptionForm() {
     if (!id) return
 
     const sub = subscriptions.find(s => s.id === id)
-    if (!sub) return
+    if (!sub) { navigate('/'); return }
 
     setState({
       name: sub.name,

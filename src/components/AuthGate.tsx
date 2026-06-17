@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
-import { addSubscription } from "@/lib/storage"
+import { syncToDatabase } from "@/lib/storage"
+import type { Subscription } from "@/types"
 import type { Session } from "@supabase/supabase-js"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -56,19 +57,18 @@ async function migrateLocalStorage() {
   try {
     const subs = JSON.parse(raw)
     if (!Array.isArray(subs)) return
-    for (const s of subs) {
-      await addSubscription({
-        id: s.id ?? crypto.randomUUID(),
-        name: s.name,
-        price: s.price,
-        billingCycle: s.billingCycle,
-        billingDay: s.billingDay,
-        billingMonth: s.billingMonth,
-        paymentMethod: s.paymentMethod,
-        category: s.category,
-        createdAt: s.createdAt ?? new Date().toISOString(),
-      })
-    }
+    const allSubs: Subscription[] = subs.map((s: Subscription) => ({
+      id: s.id ?? crypto.randomUUID(),
+      name: s.name,
+      price: s.price,
+      billingCycle: s.billingCycle,
+      billingDay: s.billingDay,
+      billingMonth: s.billingMonth,
+      paymentMethod: s.paymentMethod,
+      category: s.category,
+      createdAt: s.createdAt ?? new Date().toISOString(),
+    }))
+    await syncToDatabase(allSubs)
     localStorage.removeItem("subscriptions")
   } catch {
   }
