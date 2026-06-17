@@ -18,7 +18,7 @@ import SettingsDialog from '@/components/SettingsDialog'
 import { useAuth } from '@/components/AuthGate'
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog'
 import { CATEGORIES, type Category } from '@/types'
-import { Plus, Search, LogOut, UploadCloud } from 'lucide-react'
+import { Plus, Search, LogOut, UploadCloud, ChevronDown, ChevronUp, SlidersHorizontal } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 function formatRelativeTime(date: Date): string {
@@ -41,12 +41,19 @@ export default function Dashboard() {
 
   const [sortBy, setSortBy] = useState<'price-desc' | 'price-asc' | 'name' | 'next-payment'>('price-desc')
   const [filterCategory, setFilterCategory] = useState<Category | 'All'>('All')
+  const [filterPaymentMethod, setFilterPaymentMethod] = useState<string>('All')
   const [search, setSearch] = useState('')
+  const [categoryChartOpen, setCategoryChartOpen] = useState(true)
+  const [paymentChartOpen, setPaymentChartOpen] = useState(true)
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   const totalMonthly = subscriptions.reduce((sum, s) => sum + monthlyEquivalent(s), 0)
 
+  const paymentMethods = [...new Set(subscriptions.map(s => s.paymentMethod))].sort()
+
   const displayedSubscriptions = subscriptions
     .filter(s => filterCategory === 'All' || s.category === filterCategory)
+    .filter(s => filterPaymentMethod === 'All' || s.paymentMethod === filterPaymentMethod)
     .filter(s => s.name.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
       if (sortBy === 'price-desc') return b.price - a.price
@@ -98,11 +105,11 @@ export default function Dashboard() {
           <div className="bg-destructive/10 text-destructive text-sm px-3 py-2 rounded">{error}</div>
         )}
 
-        {/* Total monthly spend */}
+        {/* Total Monthly Spend */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total monthly spend
+              Total Monthly Spend
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -113,35 +120,55 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Category breakdown */}
+        {/* Spend by Category */}
         {subscriptions.length > 0 && (
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Spend by category
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Spend by Category
+                </CardTitle>
+                <button
+                  onClick={() => setCategoryChartOpen(o => !o)}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {categoryChartOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+                </button>
+              </div>
             </CardHeader>
-            <CardContent>
-              <CategoryChart subscriptions={subscriptions} currency={currency} />
-            </CardContent>
+            {categoryChartOpen && (
+              <CardContent>
+                <CategoryChart subscriptions={displayedSubscriptions} currency={currency} />
+              </CardContent>
+            )}
           </Card>
         )}
 
-        {/* Payment method breakdown */}
+        {/* Spend by Payment Method */}
         {subscriptions.length > 0 && (
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Spend by payment method
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Spend by Payment Method
+                </CardTitle>
+                <button
+                  onClick={() => setPaymentChartOpen(o => !o)}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {paymentChartOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+                </button>
+              </div>
             </CardHeader>
-            <CardContent>
-              <CategoryChart subscriptions={subscriptions} currency={currency} groupBy="paymentMethod" />
-            </CardContent>
+            {paymentChartOpen && (
+              <CardContent>
+                <CategoryChart subscriptions={displayedSubscriptions} currency={currency} groupBy="paymentMethod" />
+              </CardContent>
+            )}
           </Card>
         )}
 
-        {/* Sort + Filter */}
+        {/* Search + Sort + Filter */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
@@ -165,27 +192,51 @@ export default function Dashboard() {
               <SelectItem value="next-payment">Next payment</SelectItem>
             </SelectContent>
           </Select>
+          <Button
+            variant={filtersOpen ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setFiltersOpen(o => !o)}
+            className="relative shrink-0"
+          >
+            <SlidersHorizontal className="size-4 mr-1.5" />
+            Filter
+            {(filterCategory !== 'All' || filterPaymentMethod !== 'All') && (
+              <span className="absolute -top-1.5 -right-1.5 size-4 rounded-full bg-primary text-primary-foreground text-[10px] flex items-center justify-center font-medium">
+                {(filterCategory !== 'All' ? 1 : 0) + (filterPaymentMethod !== 'All' ? 1 : 0)}
+              </span>
+            )}
+          </Button>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          <Button
-            variant={filterCategory === 'All' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setFilterCategory('All')}
-          >
-            All
-          </Button>
-          {CATEGORIES.filter(cat => subscriptions.some(s => s.category === cat)).map((cat) => (
-            <Button
-              key={cat}
-              variant={filterCategory === cat ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilterCategory(cat)}
-            >
-              {cat}
-            </Button>
-          ))}
-        </div>
+        {filtersOpen && (
+          <div className="rounded-lg border bg-card p-3 space-y-3">
+            <div>
+              <div className="mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Category</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                <Button variant={filterCategory === 'All' ? 'default' : 'outline'} size="sm" className="h-7 text-xs" onClick={() => setFilterCategory('All')}>All</Button>
+                {CATEGORIES.filter(cat => subscriptions.some(s => s.category === cat)).map(cat => (
+                  <Button key={cat} variant={filterCategory === cat ? 'default' : 'outline'} size="sm" className="h-7 text-xs" onClick={() => setFilterCategory(cat)}>{cat}</Button>
+                ))}
+              </div>
+            </div>
+
+            {paymentMethods.length > 1 && (
+              <div>
+                <div className="mb-2">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Payment Method</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  <Button variant={filterPaymentMethod === 'All' ? 'default' : 'outline'} size="sm" className="h-7 text-xs" onClick={() => setFilterPaymentMethod('All')}>All</Button>
+                  {paymentMethods.map(pm => (
+                    <Button key={pm} variant={filterPaymentMethod === pm ? 'default' : 'outline'} size="sm" className="h-7 text-xs" onClick={() => setFilterPaymentMethod(pm)}>{pm}</Button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <SubscriptionList
           subscriptions={displayedSubscriptions}
