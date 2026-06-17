@@ -13,8 +13,8 @@ A minimal, modern web app to track your recurring subscriptions. Works offline w
 - **Billing cycles** — monthly or annually; next payment date auto-calculated from billing day
 - **10 categories** — Entertainment, Productivity, Cloud/Storage, News & Media, Health & Fitness, Finance, Shopping, Gaming, Utilities, Other
 - **Settings** — currency picker (USD, EUR, GBP, JPY, and more) + light/dark/system theme, grouped in a single gear icon
-- **Auth + cloud sync** — optional Supabase sign-in; localStorage is the write-through cache, DB is authoritative on load; "Save to cloud" button + auto-sync on tab blur
-- **Guest mode** — use the app without signing in; data stays in localStorage only
+- **Auth + cloud sync** — optional Supabase sign-in (email/password); localStorage is the write-through cache, DB is authoritative on load; "Save to cloud" button + auto-sync on tab blur; forgot password + password reset flow; change password in Settings
+- **Guest mode** — app opens directly to dashboard; sign in only when you want cloud sync; data stays in localStorage until then
 
 ## Tech Stack
 
