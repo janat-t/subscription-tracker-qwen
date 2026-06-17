@@ -127,6 +127,20 @@ export default function Dashboard() {
           </Card>
         )}
 
+        {/* Payment method breakdown */}
+        {subscriptions.length > 0 && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Spend by payment method
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CategoryChart subscriptions={subscriptions} currency={currency} groupBy="paymentMethod" />
+            </CardContent>
+          </Card>
+        )}
+
         {/* Sort + Filter */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
