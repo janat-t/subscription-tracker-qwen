@@ -1,10 +1,48 @@
-import { useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 import { addSubscription } from "@/lib/storage"
 import type { Session } from "@supabase/supabase-js"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+
+function RecoverPasswordScreen({ onDone }: { onDone: () => void }) {
+  const [password, setPassword] = useState("")
+  const [confirm, setConfirm] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+    if (password.length < 6) { setError("Password must be at least 6 characters"); return }
+    if (password !== confirm) { setError("Passwords do not match"); return }
+    setSubmitting(true)
+    const { error: err } = await supabase.auth.updateUser({ password })
+    setSubmitting(false)
+    if (err) { setError(err.message); return }
+    onDone()
+  }
+
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <div className="w-full max-w-sm space-y-6">
+        <h1 className="text-2xl font-semibold tracking-tight text-center">Set new password</h1>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input type="password" placeholder="New password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <Input type="password" placeholder="Confirm new password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <Button type="submit" className="w-full" disabled={submitting}>
+            {submitting ? "Saving..." : "Set password"}
+          </Button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+const AuthContext = createContext<{ showAuth: () => void }>({ showAuth: () => {} })
+export function useAuth() { return useContext(AuthContext) }
 
 async function migrateLocalStorage() {
   const raw = localStorage.getItem("subscriptions")
@@ -32,25 +70,34 @@ async function migrateLocalStorage() {
 
 export default function AuthGate({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null | undefined>(undefined)
-  const [dismissed, setDismissed] = useState(false)
-  const [mode, setMode] = useState<"signin" | "signup">("signin")
+  const [dismissed, setDismissed] = useState(true)
+  const [recovering, setRecovering] = useState(false)
+  const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [authError, setAuthError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [signedUp, setSignedUp] = useState(false)
+  const [forgotSent, setForgotSent] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s)
+      if (event === "PASSWORD_RECOVERY") setRecovering(true)
     })
     return () => subscription.unsubscribe()
   }, [])
 
   if (session === undefined) return null
 
-  if (session || dismissed) return <>{children}</>
+  if (recovering) return <RecoverPasswordScreen onDone={() => setRecovering(false)} />
+
+  if (session || dismissed) return (
+    <AuthContext.Provider value={{ showAuth: () => setDismissed(false) }}>
+      {children}
+    </AuthContext.Provider>
+  )
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -63,10 +110,17 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
         await migrateLocalStorage()
         setSignedUp(true)
         return
+      } else if (mode === "forgot") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin })
+        if (error) { setAuthError(error.message); return }
+        setForgotSent(true)
+        return
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) { setAuthError(error.message); return }
       }
+    } catch (e: unknown) {
+      setAuthError(e instanceof Error ? e.message : String(e))
     } finally {
       setSubmitting(false)
     }
@@ -92,6 +146,26 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     )
   }
 
+  if (forgotSent) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="w-full max-w-sm space-y-4 text-center">
+          <h1 className="text-2xl font-semibold tracking-tight">Check your email</h1>
+          <p className="text-muted-foreground text-sm">
+            We sent a password reset link to <strong>{email}</strong>.
+          </p>
+          <button
+            type="button"
+            className="text-sm underline text-foreground"
+            onClick={() => { setForgotSent(false); setMode("signin") }}
+          >
+            Back to sign in
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-6">
@@ -107,33 +181,57 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
               required
             />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+          {mode !== "forgot" && (
+            <div className="space-y-1">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+          )}
           {authError && (
             <p className="text-sm text-destructive">{authError}</p>
           )}
+          {mode === "signin" && (
+            <button
+              type="button"
+              className="text-sm text-muted-foreground underline"
+              onClick={() => { setMode("forgot"); setAuthError(null) }}
+            >
+              Forgot password?
+            </button>
+          )}
           <Button type="submit" className="w-full" disabled={submitting}>
-            {submitting ? "Please wait..." : mode === "signin" ? "Sign in" : "Sign up"}
+            {submitting ? "Please wait..." : mode === "signin" ? "Sign in" : mode === "signup" ? "Sign up" : "Send reset link"}
           </Button>
         </form>
-        <p className="text-sm text-center text-muted-foreground">
-          {mode === "signin" ? "No account?" : "Already have an account?"}{" "}
-          <button
-            type="button"
-            className="underline text-foreground"
-            onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setAuthError(null) }}
-          >
-            {mode === "signin" ? "Sign up" : "Sign in"}
-          </button>
-        </p>
+        {mode !== "forgot" && (
+          <p className="text-sm text-center text-muted-foreground">
+            {mode === "signin" ? "No account?" : "Already have an account?"}{" "}
+            <button
+              type="button"
+              className="underline text-foreground"
+              onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setAuthError(null) }}
+            >
+              {mode === "signin" ? "Sign up" : "Sign in"}
+            </button>
+          </p>
+        )}
+        {mode === "forgot" && (
+          <p className="text-sm text-center text-muted-foreground">
+            <button
+              type="button"
+              className="underline text-foreground"
+              onClick={() => { setMode("signin"); setAuthError(null) }}
+            >
+              Back to sign in
+            </button>
+          </p>
+        )}
         <p className="text-sm text-center text-muted-foreground">
           <button
             type="button"

@@ -15,6 +15,7 @@ import {
 import SubscriptionList from '@/components/SubscriptionList'
 import CategoryChart from '@/components/CategoryChart'
 import SettingsDialog from '@/components/SettingsDialog'
+import { useAuth } from '@/components/AuthGate'
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog'
 import { CATEGORIES, type Category } from '@/types'
 import { Plus, Search, LogOut, UploadCloud } from 'lucide-react'
@@ -33,6 +34,7 @@ function formatRelativeTime(date: Date): string {
 export default function Dashboard() {
   const navigate = useNavigate()
   const { subscriptions, currency, remove, setCurrency, error, lastSyncedAt, sync, syncing, isAuthenticated } = useSubscriptions()
+  const { showAuth } = useAuth()
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
   const deleteNameRef = useRef('')
   if (deleteTarget) deleteNameRef.current = deleteTarget.name
@@ -72,14 +74,14 @@ export default function Dashboard() {
                 <Button variant="ghost" size="icon" onClick={() => supabase.auth.signOut()}>
                   <LogOut className="size-4" />
                 </Button>
-                <SettingsDialog currency={currency} onChangeCurrency={setCurrency} />
+                <SettingsDialog currency={currency} onChangeCurrency={setCurrency} isAuthenticated={isAuthenticated} />
               </div>
             ) : (
               <div className="flex items-center gap-1">
-                <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+                <Button variant="outline" size="sm" onClick={showAuth}>
                   Sign in to save
                 </Button>
-                <SettingsDialog currency={currency} onChangeCurrency={setCurrency} />
+                <SettingsDialog currency={currency} onChangeCurrency={setCurrency} isAuthenticated={false} />
               </div>
             )}
             <Button size="sm" onClick={() => navigate('/add')}>
