@@ -67,7 +67,7 @@ export function useSubscriptions() {
     try {
       await syncToDatabase(getLocalSubscriptions())
       const subs = await getSubscriptions()
-      if (subs) {
+      if (subs && subs.length > 0) {
         setSubscriptions(subs)
         saveLocalSubscriptions(subs)
       }
@@ -99,7 +99,11 @@ export function useSubscriptions() {
       } catch {}
     }
     document.addEventListener("visibilitychange", handleVisibility)
-    return () => document.removeEventListener("visibilitychange", handleVisibility)
+    window.addEventListener("focus", handleVisibility)
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility)
+      window.removeEventListener("focus", handleVisibility)
+    }
   }, [])
 
   const add = useCallback((sub: Omit<Subscription, "id" | "createdAt">) => {
