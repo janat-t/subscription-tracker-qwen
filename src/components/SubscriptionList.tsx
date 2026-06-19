@@ -1,5 +1,6 @@
 import type { Subscription } from '@/types'
 import { formatCurrency, formatDate, nextPaymentDate } from '@/lib/utils'
+import { CATEGORY_COLORS, PALETTE } from '@/lib/category-colors'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -35,7 +36,15 @@ export default function SubscriptionList({
               <div className="min-w-0 flex-1">
                 <div className="text-base font-medium truncate">{sub.name}</div>
                 <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-                  <Badge variant="secondary">{sub.category}</Badge>
+                  <Badge
+                    style={{
+                      backgroundColor: CATEGORY_COLORS[sub.category] ?? PALETTE[0],
+                      color: '#fff',
+                      borderColor: 'transparent',
+                    }}
+                  >
+                    {sub.category}
+                  </Badge>
                   <span className="text-xs text-muted-foreground">
                     {sub.billingCycle === 'monthly' ? 'Monthly' : 'Annually'}
                   </span>
